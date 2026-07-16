@@ -1,6 +1,4 @@
-===========================================================
  DERMACARE APPLICATION - RUN INSTRUCTIONS
-===========================================================
 
 1. BACKEND INITIALIZATION (Spring Boot)
    - Open the backend directory in your IDE (IntelliJ / Eclipse).
@@ -14,5 +12,3 @@
    - Run the command: npm install (This restores the node_modules folder).
    - Once installation completes, run: npm run dev
    - Access the interface locally via http://localhost:5173.
-
-===========================================================
