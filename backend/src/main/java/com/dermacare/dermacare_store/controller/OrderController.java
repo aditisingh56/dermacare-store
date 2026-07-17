@@ -186,4 +186,54 @@ public class OrderController {
             return ResponseEntity.status(400).body(response);
         }
     }
+
+    // 4. UPDATE ORDER STATUS - Allows admin to transition order status and manage stock corrections
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateOrderStatus(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Order order = orderService.getAllOrders().stream()
+                    .filter(o -> o.getOrderId().equals(id))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+
+            String newStatus = payload.get("status");
+            if (newStatus == null || newStatus.trim().isEmpty()) {
+                throw new RuntimeException("Status field is required");
+            }
+
+            String oldStatus = order.getStatus();
+            if (!oldStatus.equalsIgnoreCase(newStatus)) {
+                // If transitioning to Cancelled, restore stock
+                if (newStatus.equalsIgnoreCase("Cancelled")) {
+                    Product product = order.getProduct();
+                    if (product != null) {
+                        product.setStock(product.getStock() + order.getQuantity());
+                        productRepository.save(product);
+                    }
+                }
+                // If transitioning FROM Cancelled to something else, deduct stock (check availability)
+                else if (oldStatus.equalsIgnoreCase("Cancelled")) {
+                    Product product = order.getProduct();
+                    if (product != null) {
+                        if (product.getStock() < order.getQuantity()) {
+                            throw new RuntimeException("Insufficient stock to reinstate order");
+                        }
+                        product.setStock(product.getStock() - order.getQuantity());
+                        productRepository.save(product);
+                    }
+                }
+                order.setStatus(newStatus);
+                orderService.saveOrder(order);
+            }
+
+            response.put("success", true);
+            response.put("message", "Order status updated successfully to " + newStatus);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to update status: " + e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        }
+    }
 }

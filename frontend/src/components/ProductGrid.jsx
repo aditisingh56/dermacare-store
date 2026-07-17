@@ -104,13 +104,18 @@ function ProductGrid({ products = [], onAddToCart }) {
                     <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       {p.brand}
                     </span>
+                    {!isLowStock && !isOutOfStock && (
+                      <span style={{ fontSize: '10px', backgroundColor: 'var(--success-light)', color: 'var(--success-dark)', padding: '2px 8px', borderRadius: '9999px', fontWeight: '700', border: '1px solid #a7f3d0' }}>
+                        In Stock: {p.stock} units
+                      </span>
+                    )}
                     {isLowStock && !isOutOfStock && (
-                      <span style={{ fontSize: '10px', backgroundColor: 'var(--warning-light)', color: 'var(--warning-dark)', padding: '2px 8px', borderRadius: '9999px', fontWeight: '700' }}>
-                        Low Stock: {p.stock} left
+                      <span style={{ fontSize: '10px', backgroundColor: 'var(--warning-light)', color: 'var(--warning-dark)', padding: '2px 8px', borderRadius: '9999px', fontWeight: '700', border: '1px solid #fde68a' }}>
+                        Only {p.stock} left
                       </span>
                     )}
                     {isOutOfStock && (
-                      <span style={{ fontSize: '10px', backgroundColor: 'var(--error-light)', color: 'var(--error-dark)', padding: '2px 8px', borderRadius: '9999px', fontWeight: '700' }}>
+                      <span style={{ fontSize: '10px', backgroundColor: 'var(--error-light)', color: 'var(--error-dark)', padding: '2px 8px', borderRadius: '9999px', fontWeight: '700', border: '1px solid #fecaca' }}>
                         Out of Stock
                       </span>
                     )}

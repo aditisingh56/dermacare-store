@@ -3,13 +3,18 @@ package com.dermacare.dermacare_store.security;
 import com.dermacare.dermacare_store.entity.Role;
 import com.dermacare.dermacare_store.entity.User;
 import com.dermacare.dermacare_store.entity.Product;
+import com.dermacare.dermacare_store.entity.Customer;
+import com.dermacare.dermacare_store.entity.Order;
 import com.dermacare.dermacare_store.repository.RoleRepository;
 import com.dermacare.dermacare_store.repository.UserRepository;
 import com.dermacare.dermacare_store.repository.ProductRepository;
+import com.dermacare.dermacare_store.repository.CustomerRepository;
+import com.dermacare.dermacare_store.repository.OrderRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 
 @Component
@@ -18,15 +23,21 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DatabaseSeeder(RoleRepository roleRepository,
                           UserRepository userRepository,
                           ProductRepository productRepository,
+                          CustomerRepository customerRepository,
+                          OrderRepository orderRepository,
                           PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -112,6 +123,45 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             productRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6));
             System.out.println("Seeded default premium skincare products.");
+        }
+
+        // 4. Seed Orders (if none exist)
+        if (orderRepository.count() == 0) {
+            Customer customer = customerRepository.findByEmail("customer@dermacare.com")
+                    .orElseGet(() -> {
+                        Customer c = new Customer();
+                        c.setCustomerName("ThanushriAdi");
+                        c.setEmail("customer@dermacare.com");
+                        c.setPhone("9876543210");
+                        c.setAddress("123 Derma Lane, Skin City");
+                        return customerRepository.save(c);
+                    });
+
+            Product p1 = productRepository.findAll().stream()
+                    .filter(p -> p.getProductName().contains("Vitamin C"))
+                    .findFirst().orElse(null);
+
+            Product p2 = productRepository.findAll().stream()
+                    .filter(p -> p.getProductName().contains("Niacinamide"))
+                    .findFirst().orElse(null);
+
+            Product p3 = productRepository.findAll().stream()
+                    .filter(p -> p.getProductName().contains("Aqualogica"))
+                    .findFirst().orElse(null);
+
+            if (p1 != null) {
+                Order o1 = new Order(null, customer, p1, 2, p1.getPrice() * 2, LocalDate.now().minusDays(5), "Delivered");
+                orderRepository.save(o1);
+            }
+            if (p2 != null) {
+                Order o2 = new Order(null, customer, p2, 1, p2.getPrice(), LocalDate.now().minusDays(2), "Processing");
+                orderRepository.save(o2);
+            }
+            if (p3 != null) {
+                Order o3 = new Order(null, customer, p3, 3, p3.getPrice() * 3, LocalDate.now().minusDays(10), "Delivered");
+                orderRepository.save(o3);
+            }
+            System.out.println("Seeded default customer orders.");
         }
     }
 }
